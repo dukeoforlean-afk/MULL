@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MULL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f3f0;
+  --ink:#111110;
+  --mid:#8a8880;
+  --line:#dddad4;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Space Grotesk',sans-serif;font-weight:300;color:var(--ink);}
+
+.page{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;opacity:0;pointer-events:none;transition:opacity .4s ease;}
+.page.active{opacity:1;pointer-events:all;}
+
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:stretch;
+  border-bottom:1px solid var(--line);
+  background:var(--bg);
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px 28px;cursor:pointer;
+  border-right:1px solid var(--line);
+  position:relative;transition:background .15s;
+  gap:2px;flex:1;
+}
+.nav-item:last-child{border-right:none;}
+.nav-item:hover{background:rgba(0,0,0,.03);}
+.nav-item.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+
+.nav-item[data-page="home"]         { --acc:#111110; }
+.nav-item[data-page="how"]          { --acc:#c8341a; }
+.nav-item[data-page="showroom-pg"]  { --acc:#1a5c8a; }
+.nav-item[data-page="designers-pg"] { --acc:#1a6b3a; }
+.nav-item[data-page="manifesto-pg"] { --acc:#7a3a8a; }
+.nav-item.active::after{background:var(--acc);}
+
+.nav-logo{
+  font-family:'Anton',sans-serif;
+  font-size:22px;letter-spacing:.02em;
+  color:var(--ink);line-height:1;
+  position:relative;display:inline-block;
+}
+.nav-item.active .nav-logo{color:var(--acc);}
+.nav-logo .dot{
+  position:absolute;top:-5px;left:50%;transform:translateX(-50%);
+  width:5px;height:5px;border-radius:50%;background:currentColor;
+}
+.nav-sub{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);}
+.nav-item.active .nav-sub{color:var(--acc);}
+
+/* HOME */
+#home{background:var(--bg);}
+.home-inner{min-height:100vh;display:flex;flex-direction:column;padding:80px 48px 0;}
+.home-top{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0 32px;}
+.home-kicker{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mid);margin-bottom:28px;}
+.home-hed{font-family:'Anton',sans-serif;font-size:clamp(72px,12vw,170px);line-height:.88;letter-spacing:.01em;margin-bottom:40px;}
+.home-hed .line2{-webkit-text-stroke:1.5px var(--ink);-webkit-text-fill-color:transparent;}
+.home-row{display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid var(--line);padding-top:20px;padding-bottom:36px;}
+.home-desc{font-size:13px;line-height:1.85;color:var(--mid);max-width:420px;}
+.home-actions{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+.btn-main{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.08em;background:var(--ink);color:var(--bg);border:none;padding:14px 36px;cursor:pointer;transition:background .15s;}
+.btn-main:hover{background:#c8341a;}
+.btn-ghost{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);background:none;border:none;cursor:pointer;transition:color .15s;}
+.btn-ghost:hover{color:var(--ink);}
+.ticker-wrap{border-top:1px solid var(--line);overflow:hidden;}
+.ticker{display:flex;gap:0;white-space:nowrap;animation:tick 24s linear infinite;}
+.t-item{display:inline-flex;align-items:center;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mid);padding:10px 32px;border-right:1px solid var(--line);flex-shrink:0;}
+@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* HOW */
+#how{background:var(--bg);}
+.how-inner{max-width:1100px;margin:0 auto;padding:120px 48px 80px;}
+.pg-eyebrow{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#c8341a;margin-bottom:48px;display:flex;align-items:center;gap:14px;}
+.pg-eyebrow::after{content:'';flex:1;height:1px;background:var(--line);}
+.how-hed{font-family:'Anton',sans-serif;font-size:clamp(38px,5.5vw,72px);line-height:.92;margin-bottom:64px;letter-spacing:.01em;}
+.steps{border-top:1px solid var(--line);}
+.step{display:grid;grid-template-columns:64px 280px 1fr;gap:32px;border-bottom:1px solid var(--line);padding:28px 0;transition:background .15s;}
+.step:hover{background:rgba(200,52,26,.03);}
+.step-n{font-family:'Anton',sans-serif;font-size:48px;color:var(--line);line-height:1;}
+.step-title{font-family:'Anton',sans-serif;font-size:20px;letter-spacing:.02em;padding-top:6px;line-height:1.1;}
+.step-body{font-size:13px;line-height:1.85;color:var(--mid);padding-top:6px;}
+.pull{margin-top:56px;border-left:3px solid #c8341a;padding:20px 28px;}
+.pull p{font-family:'Anton',sans-serif;font-size:clamp(18px,2.8vw,30px);letter-spacing:.02em;line-height:1.2;}
+.pull p em{color:#c8341a;font-style:normal;}
+
+/* SHOWROOM */
+#showroom-pg{background:var(--bg);}
+.sr-inner{max-width:1100px;margin:0 auto;padding:120px 48px 80px;}
+.pg-eyebrow.blue{color:#1a5c8a;}
+.sr-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;}
+.sr-hed{font-family:'Anton',sans-serif;font-size:clamp(36px,5.5vw,68px);line-height:.92;letter-spacing:.01em;}
+.live-pill{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#1a5c8a;display:flex;align-items:center;gap:8px;padding-bottom:8px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#1a5c8a;animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.sr-grid{display:grid;grid-template-columns:1.7fr 1fr 1fr;grid-template-rows:auto auto;gap:1px;background:var(--line);}
+.sr-card{background:var(--bg);padding:24px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:background .2s;}
+.sr-card:hover{background:#eeecea;}
+.sr-card.big{grid-row:span 2;}
+.sr-vis{background:var(--ink);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.sr-card.big .sr-vis{height:320px;}
+.sr-card:not(.big) .sr-vis{height:150px;}
+.garment{clip-path:polygon(22% 0%,78% 0%,100% 18%,88% 100%,12% 100%,0% 18%);}
+.g1{width:100px;height:134px;background:linear-gradient(150deg,#c8341a,#1a0a06);}
+.g2{width:72px;height:97px;background:linear-gradient(150deg,#1a5c8a,#060e16);}
+.g3{width:68px;height:91px;background:linear-gradient(150deg,#4a3820,#0a0806);}
+.g4{width:68px;height:91px;background:linear-gradient(150deg,#2a1a5c,#06040e);}
+.g5{width:68px;height:91px;background:linear-gradient(150deg,#1a6b3a,#040e08);}
+.winner{position:absolute;top:12px;left:12px;background:#c8341a;color:#fff;font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;}
+.sr-idea{font-size:10px;color:var(--mid);line-height:1.5;}
+.sr-name{font-family:'Anton',sans-serif;font-size:17px;letter-spacing:.02em;line-height:1.1;}
+.sr-card:not(.big) .sr-name{font-size:14px;}
+.sr-by{font-size:10px;color:var(--mid);}
+.sr-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;margin-top:auto;}
+.sr-votes{font-size:11px;color:#c8341a;letter-spacing:.05em;}
+.sr-tag{font-size:9px;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--line);padding:3px 8px;color:var(--mid);}
+.sr-tag.i{border-color:#1a5c8a;color:#1a5c8a;}
+
+/* DESIGNERS */
+#designers-pg{background:var(--bg);}
+.d-inner{max-width:1100px;margin:0 auto;padding:120px 48px 80px;}
+.pg-eyebrow.green{color:#1a6b3a;}
+.d-split{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;margin-bottom:64px;}
+.d-hed{font-family:'Anton',sans-serif;font-size:clamp(44px,6.5vw,84px);line-height:.88;letter-spacing:.01em;}
+.d-hed .outline{-webkit-text-stroke:1.5px var(--ink);-webkit-text-fill-color:transparent;}
+.d-body{font-size:13px;line-height:1.9;color:var(--mid);margin-bottom:28px;}
+.prize-box{border:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;}
+.prize-l{padding:36px;border-right:1px solid var(--line);}
+.prize-num{font-family:'Anton',sans-serif;font-size:72px;line-height:.85;color:#1a6b3a;letter-spacing:.01em;}
+.prize-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mid);margin-top:12px;}
+.prize-r{padding:36px;}
+.prize-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+.prize-row:last-child{border-bottom:none;}
+.pr-k{font-size:11px;color:var(--mid);letter-spacing:.04em;}
+.pr-v{font-family:'Anton',sans-serif;font-size:18px;letter-spacing:.02em;}
+.pr-v.g{color:#1a6b3a;}
+.cycle{margin-top:56px;}
+.cycle-eyebrow{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--mid);margin-bottom:24px;display:flex;align-items:center;gap:14px;}
+.cycle-eyebrow::after{content:'';flex:1;height:1px;background:var(--line);}
+.cycle-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);}
+.cy{background:var(--bg);padding:20px 16px;transition:background .2s;}
+.cy:hover{background:var(--ink);color:var(--bg);}
+.cy:hover .cy-day,.cy:hover .cy-body{color:#666;}
+.cy-day{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--mid);margin-bottom:8px;}
+.cy-title{font-family:'Anton',sans-serif;font-size:20px;letter-spacing:.02em;margin-bottom:6px;}
+.cy-body{font-size:11px;line-height:1.65;color:var(--mid);}
+
+/* MANIFESTO */
+#manifesto-pg{background:var(--bg);}
+.m-inner{max-width:740px;margin:0 auto;padding:120px 48px 80px;}
+.pg-eyebrow.purple{color:#7a3a8a;}
+.m-hed{font-family:'Anton',sans-serif;font-size:clamp(32px,4.5vw,56px);line-height:.92;letter-spacing:.01em;margin-bottom:48px;}
+.m-body{display:flex;flex-direction:column;gap:24px;}
+.m-p{font-size:14px;line-height:1.95;color:var(--mid);}
+.m-p strong{color:var(--ink);font-weight:500;}
+.m-p .acc{color:#7a3a8a;}
+.m-end{margin-top:56px;border-top:1px solid var(--line);padding-top:40px;display:flex;align-items:center;justify-content:space-between;}
+.m-end-hed{font-family:'Anton',sans-serif;font-size:26px;letter-spacing:.02em;}
+.btn-outline{font-size:10px;letter-spacing:.16em;text-transform:uppercase;border:1px solid var(--ink);color:var(--ink);padding:12px 28px;background:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:background .15s,color .15s;}
+.btn-outline:hover{background:var(--ink);color:var(--bg);}
+footer{border-top:1px solid var(--line);padding:20px 48px;display:flex;justify-content:space-between;align-items:center;}
+.f-copy{font-size:10px;color:var(--mid);letter-spacing:.08em;}
+.f-links{display:flex;gap:24px;}
+.f-links a{font-size:10px;color:var(--mid);text-decoration:none;letter-spacing:.08em;transition:color .15s;}
+.f-links a:hover{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-item active" data-page="home" onclick="go('home')">
+    <span class="nav-logo"><span class="dot"></span>MULL</span>
+    <span class="nav-sub">Главная</span>
+  </div>
+  <div class="nav-item" data-page="how" onclick="go('how')">
+    <span class="nav-logo"><span class="dot"></span>MULL</span>
+    <span class="nav-sub">Как это работает</span>
+  </div>
+  <div class="nav-item" data-page="showroom-pg" onclick="go('showroom-pg')">
+    <span class="nav-logo"><span class="dot"></span>MULL</span>
+    <span class="nav-sub">Шоурум</span>
+  </div>
+  <div class="nav-item" data-page="designers-pg" onclick="go('designers-pg')">
+    <span class="nav-logo"><span class="dot"></span>MULL</span>
+    <span class="nav-sub">Дизайнерам</span>
+  </div>
+  <div class="nav-item" data-page="manifesto-pg" onclick="go('manifesto-pg')">
+    <span class="nav-logo"><span class="dot"></span>MULL</span>
+    <span class="nav-sub">Манифест</span>
+  </div>
+</nav>
+
+<!-- ГЛАВНАЯ -->
+<div class="page active" id="home">
+  <div class="home-inner">
+    <div class="home-top">
+      <div class="home-kicker">Кастомная одежда на основе твоей идеи · 2025</div>
+      <div class="home-hed">
+        ТВОЙ <span class="line2">ОБРАЗ</span><br/>
+        ТВОИ <span class="line2">ПРАВИЛА</span>
+
+      </div>
+      <div class="home-row">
+        <p class="home-desc">Ты приносишь сырую идею — мифологию, образ, ощущение. ИИ вытягивает её и превращает в вещь, которая принадлежит только тебе. Как татуировка. Но носимая.</p>
+        <div class="home-actions">
+          <button class="btn-main" onclick="go('how')">НАЧАТЬ СОЗДАВАТЬ</button>
+          <button class="btn-ghost" onclick="go('showroom-pg')">Смотреть шоурум этой недели →</button>
+        </div>
+      </div>
+    </div>
+    <div class="ticker-wrap">
+      <div class="ticker">
+        <span class="t-item">3 241 образ создан на этой неделе</span>
+        <span class="t-item">Победитель недели получает 50 000 ₽</span>
+        <span class="t-item">Мгновенные заказы открыты</span>
+        <span class="t-item">Худи · Футболки · Костюмы</span>
+        <span class="t-item">За каждой вещью стоит история</span>
+        <span class="t-item">3 241 образ создан на этой неделе</span>
+        <span class="t-item">Победитель недели получает 50 000 ₽</span>
+        <span class="t-item">Мгновенные заказы открыты</span>
+        <span class="t-item">Худи · Футболки · Костюмы</span>
+        <span class="t-item">За каждой вещью стоит история</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- КАК ЭТО РАБОТАЕТ -->
+<div class="page" id="how">
+  <div class="how-inner">
+    <div class="pg-eyebrow">Процесс</div>
+    <div class="how-hed">ОТ МЫСЛИ В ГОЛОВЕ —<br/>К ВЕЩИ НА ТЕЛЕ.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <div class="step-title">ОПИШИ СВОЮ ИДЕЮ</div>
+        <div class="step-body">Скажи MULL что у тебя в голове. Символ, миф, эмоция, эпоха. ИИ не просто принимает это — он задаёт правильные вопросы, копает глубже и помогает сформулировать то, что ты, возможно, ещё не мог выразить словами.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <div class="step-title">ИИ ФОРМИРУЕТ КОНЦЕПЦИЮ</div>
+        <div class="step-body">Модель превращает твою идею в визуальный образ — арт, принт, расположение, палитра. Ты выбираешь изделие: худи, футболка, костюм. Только высококачественные ткани. Идея и вещь должны быть достойны друг друга.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <div class="step-title">ВЫХОДИШЬ В ШОУРУМ</div>
+        <div class="step-body">Каждая генерация видна всем. Сообщество видит идею за вещью, а не только саму вещь. Они голосуют. Лучшая работа недели уходит в лимитированный тираж.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">04</div>
+        <div class="step-title">ЗАКАЗЫВАЙ — ИЛИ ПОБЕЖДАЙ</div>
+        <div class="step-body">Зарегистрированные пользователи могут заказать свою генерацию сразу по премиальной цене. Или ждать: если твой образ побеждает в недельном голосовании — он выходит в тираж по сниженной цене, а ты как дизайнер получаешь 50 000 ₽.</div>
+      </div>
+    </div>
+    <div class="pull">
+      <p>НИКТО НЕ НАБИВАЕТ ТАТУ ИМПУЛЬСИВНО.<br/>ОБ ЭТОМ ДУМАЮТ МЕСЯЦАМИ.<br/>ОБДУМЫВАЮТ. <em>ВОТ В ЧЁМ ИДЕЯ.</em></p>
+    </div>
+  </div>
+</div>
+
+<!-- ШОУРУМ -->
+<div class="page" id="showroom-pg">
+  <div class="sr-inner">
+    <div class="pg-eyebrow blue">Живой шоурум</div>
+    <div class="sr-top">
+      <div class="sr-hed">ЧТО ЛЮДИ<br/>ОБДУМЫВАЮТ<br/>ПРЯМО СЕЙЧАС</div>
+      <div class="live-pill"><span class="live-dot"></span>Живой · Неделя 24 · 3 241 образ</div>
+    </div>
+    <div class="sr-grid">
+      <div class="sr-card big">
+        <div class="sr-vis"><span class="winner">Топ недели</span><div class="garment g1"></div></div>
+        <div class="sr-idea">«Тяжесть Иггдрасиля, давящая на современность»</div>
+        <div class="sr-name">NORSE COLLAPSE — ОВЕРСАЙЗ ХУДИ</div>
+        <div class="sr-by">от @eriksen_draws</div>
+        <div class="sr-foot"><span class="sr-votes">↑ 2 418 голосов</span><span class="sr-tag i">Мгновенный заказ</span></div>
+      </div>
+      <div class="sr-card">
+        <div class="sr-vis"><div class="garment g2"></div></div>
+        <div class="sr-name">JADE FREQUENCY — ФУТБОЛКА</div>
+        <div class="sr-by">от @mosu_art</div>
+        <div class="sr-foot"><span class="sr-votes">↑ 891</span><span class="sr-tag">Дроп</span></div>
+      </div>
+      <div class="sr-card">
+        <div class="sr-vis"><div class="garment g3"></div></div>
+        <div class="sr-name">AMBER PROTOCOL — КОСТЮМ</div>
+        <div class="sr-by">от @kr_design</div>
+        <div class="sr-foot"><span class="sr-votes">↑ 644</span><span class="sr-tag">Дроп</span></div>
+      </div>
+      <div class="sr-card">
+        <div class="sr-vis"><div class="garment g4"></div></div>
+        <div class="sr-name">VOID TRANSIT — ХУДИ</div>
+        <div class="sr-by">от @null.null</div>
+        <div class="sr-foot"><span class="sr-votes">↑ 512</span><span class="sr-tag i">Мгновенный заказ</span></div>
+      </div>
+      <div class="sr-card">
+        <div class="sr-vis"><div class="garment g5"></div></div>
+        <div class="sr-name">IRON SOLSTICE — ФУТБОЛКА</div>
+        <div class="sr-by">от @form.studio</div>
+        <div class="sr-foot"><span class="sr-votes">↑ 388</span><span class="sr-tag">Дроп</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ДИЗАЙНЕРАМ -->
+<div class="page" id="designers-pg">
+  <div class="d-inner">
+    <div class="pg-eyebrow green">Дизайнерам</div>
+    <div class="d-split">
+      <div class="d-hed">ТВОЯ<br/>ИДЕЯ<br/><span class="outline">ПРИНОСИТ</span><br/>ДЕНЬГИ.</div>
+      <div>
+        <p class="d-body">MULL — открытая сцена для начинающих дизайнеров, иллюстраторов и визуальных художников. Портфолио не нужно. Никаких барьеров. Создай концепцию через ИИ, набирай аудиторию в шоуруме и получай фиксированную выплату, если твоя вещь побеждает в недельном голосовании.</p>
+        <button class="btn-main" onclick="go('how')">ОТПРАВИТЬ ДИЗАЙН</button>
+      </div>
+    </div>
+    <div class="prize-box">
+      <div class="prize-l">
+        <div class="prize-num">50 000 ₽</div>
+        <div class="prize-label">Фиксированная выплата · Победитель недели</div>
+      </div>
+      <div class="prize-r">
+        <div class="prize-row"><span class="pr-k">Выплата победителю недели</span><span class="pr-v g">50 000 ₽</span></div>
+        <div class="prize-row"><span class="pr-k">Производство</span><span class="pr-v">Лимитированный тираж</span></div>
+        <div class="prize-row"><span class="pr-k">Упоминание в шоуруме</span><span class="pr-v">Навсегда</span></div>
+        <div class="prize-row"><span class="pr-k">Доступ к ИИ-движку</span><span class="pr-v">Бесплатно при регистрации</span></div>
+        <div class="prize-row"><span class="pr-k">Заявок в неделю</span><span class="pr-v">Без ограничений</span></div>
+        <div class="prize-row"><span class="pr-k">Нужно портфолио</span><span class="pr-v">Нет</span></div>
+      </div>
+    </div>
+    <div class="cycle">
+      <div class="cycle-eyebrow">Цикл недели</div>
+      <div class="cycle-grid">
+        <div class="cy"><div class="cy-day">Пн – Вт</div><div class="cy-title">СОЗДАЙ</div><div class="cy-body">Создай концепцию с ИИ. Опубликуй в шоуруме.</div></div>
+        <div class="cy"><div class="cy-day">Ср – Чт</div><div class="cy-title">ГОЛОСУЙ</div><div class="cy-body">Сообщество голосует. Лайки и предзаказы влияют на результат.</div></div>
+        <div class="cy"><div class="cy-day">Пятница</div><div class="cy-title">ПОБЕДА</div><div class="cy-body">Объявляем топ-образ. Дизайнер получает 50 000 ₽. Тираж открывается.</div></div>
+        <div class="cy"><div class="cy-day">Выходные</div><div class="cy-title">ДРОП</div><div class="cy-body">Лимитированный тираж уходит к покупателям и проголосовавшим.</div></div>
+        <div class="cy"><div class="cy-day">Понедельник</div><div class="cy-title">СБРОС</div><div class="cy-body">Новая неделя. Новые заявки, новые истории.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- МАНИФЕСТ -->
+<div class="page" id="manifesto-pg">
+  <div class="m-inner">
+    <div class="pg-eyebrow purple">Манифест</div>
+    <div class="m-hed">«НИКТО НЕ НАБИВАЕТ ТАТУ, НЕ ПОДУМАВ ОБ ЭТОМ НЕСКОЛЬКО МЕСЯЦЕВ.»</div>
+    <div class="m-body">
+      <p class="m-p">В мире слишком много одежды. <strong>Большинство из неё ничего не говорит.</strong> Она существует потому что тренд так решил, фабрика сделала дёшево, а бренд прилепил логотип.</p>
+      <p class="m-p"><strong>MULL построен на другой идее.</strong> Одежда может нести смысл так же, как татуировка — постоянно, лично, с весом. Образ на твоём теле должен приходить из чего-то настоящего.</p>
+      <p class="m-p">ИИ здесь не для того, чтобы генерировать. Он здесь, чтобы <strong>вытянуть.</strong> Задаёт вопросы, которые задаёт хороший мастер на первой консультации. <span class="acc">О чём это на самом деле? Каким это должно ощущаться? Что сделает это неповторимо твоим?</span></p>
+      <p class="m-p">Шоурум публичный, потому что <strong>идея важна не меньше объекта.</strong> Ты видишь не просто худи — ты видишь, откуда оно пришло.</p>
+      <p class="m-p">И дизайнеры получают реальные деньги — <strong>50 000 ₽, фиксировано</strong> — потому что творчество заслуживает большего, чем просто упоминание.</p>
+    </div>
+    <div class="m-end">
+      <span class="m-end-hed">ГОТОВ ОБДУМАТЬ СВОЮ ВЕЩЬ?</span>
+      <button class="btn-outline" onclick="go('how')">НАЧАТЬ СОЗДАВАТЬ →</button>
+    </div>
+  </div>
+  <footer>
+    <span class="f-copy">© 2025 MULL. За каждой вещью стоит история.</span>
+    <div class="f-links"><a href="#">Условия</a><a href="#">Конфиденциальность</a><a href="#">Контакты</a></div>
+  </footer>
+</div>
+
+<script>
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop=0;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
+}
+</script>
+</body>
+</html>
