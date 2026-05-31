@@ -350,16 +350,18 @@ footer{border-top:1px solid var(--line);padding:18px 48px;display:flex;justify-c
     </div>
     <div class="modal-body">
       <div class="modal-form" id="form-login">
-        <div class="form-field"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@example.com"/></div>
-        <div class="form-field"><label class="form-label">Пароль</label><input class="form-input" type="password" placeholder="••••••••"/></div>
-        <button class="form-submit" onclick="fakeLogin()">ВОЙТИ</button>
+        <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="login-email" type="email" placeholder="you@example.com"/></div>
+        <div class="form-field"><label class="form-label">Пароль</label><input class="form-input" id="login-password" type="password" placeholder="••••••••"/></div>
+        <button class="form-submit" onclick="doLogin()">ВОЙТИ</button>
+        <div id="login-error" style="font-size:11px;color:var(--red);display:none;margin-top:4px;"></div>
         <p class="form-note">Нет аккаунта? <span style="cursor:pointer;text-decoration:underline" onclick="switchTab('register')">Зарегистрироваться</span></p>
       </div>
       <div class="modal-form" id="form-register" style="display:none">
-        <div class="form-field"><label class="form-label">Имя</label><input class="form-input" type="text" placeholder="Как тебя зовут"/></div>
-        <div class="form-field"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@example.com"/></div>
-        <div class="form-field"><label class="form-label">Пароль</label><input class="form-input" type="password" placeholder="Минимум 8 символов"/></div>
-        <button class="form-submit" onclick="fakeLogin()">СОЗДАТЬ АККАУНТ</button>
+        <div class="form-field"><label class="form-label">Имя</label><input class="form-input" id="reg-name" type="text" placeholder="Как тебя зовут"/></div>
+        <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="reg-email" type="email" placeholder="you@example.com"/></div>
+        <div class="form-field"><label class="form-label">Пароль</label><input class="form-input" id="reg-password" type="password" placeholder="Минимум 8 символов"/></div>
+        <button class="form-submit" onclick="doRegister()">СОЗДАТЬ АККАУНТ</button>
+        <div id="register-error" style="font-size:11px;color:var(--red);display:none;margin-top:4px;"></div>
         <p class="form-note">Уже есть аккаунт? <span style="cursor:pointer;text-decoration:underline" onclick="switchTab('login')">Войти</span></p>
       </div>
     </div>
@@ -578,13 +580,17 @@ footer{border-top:1px solid var(--line);padding:18px 48px;display:flex;justify-c
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://iagmwhyuvqjepcugnrxm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhZ213aHl1dnFqZXBjdWducnhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODQ5MzksImV4cCI6MjA5NTc2MDkzOX0.vMENkCAcxBQn3cxdXtBBqZhDuL0KFEAHA-j_owypXY8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ── STATE ──
-var loggedIn = false;
-var chatStep = 1;
+var currentUser = null;
 var msgCount = 0;
 
-// fake AI responses
 var aiReplies = [
   "Интересно. А что именно тебя в этом цепляет — форма, символ или что-то, что это ощущение вызывает?",
   "Хорошо. Теперь про настроение: это что-то тёмное и тяжёлое, или скорее острое и агрессивное? Или вообще другое?",
@@ -592,22 +598,53 @@ var aiReplies = [
   "Отлично. Последнее: что это будет — худи, футболка или костюм?"
 ];
 
+// ── INIT: проверяем сессию при загрузке ──
+(async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) onLogin(session.user);
+
+  // слушаем изменения сессии (логин/логаут)
+  sb.auth.onAuthStateChange(function(_event, session){
+    if(session){ onLogin(session.user); }
+    else { onLogout(); }
+  });
+})();
+
+function onLogin(user){
+  currentUser = user;
+  // Обновляем UI навбара
+  var name = user.user_metadata?.name || user.email.split('@')[0];
+  document.querySelectorAll('.btn-login').forEach(b => { b.textContent = name; b.onclick = doLogout; });
+  document.querySelectorAll('.btn-reg').forEach(b => { b.textContent = 'Выйти'; b.onclick = doLogout; });
+  document.querySelectorAll('.mob-btn-reg').forEach(b => { b.textContent = 'Выйти'; b.onclick = doLogout; });
+  // Если открыта страница создания — показываем чат
+  if(document.getElementById('create-pg').classList.contains('active')){
+    showCreateChat();
+  }
+}
+
+function onLogout(){
+  currentUser = null;
+  document.querySelectorAll('.btn-login').forEach(b => { b.textContent = 'Войти'; b.onclick = () => openModal('login'); });
+  document.querySelectorAll('.btn-reg').forEach(b => { b.textContent = 'Регистрация'; b.onclick = () => openModal('register'); });
+  document.querySelectorAll('.mob-btn-reg').forEach(b => { b.textContent = 'Регистрация'; b.onclick = () => openModal('register'); });
+}
+
 // ── NAVIGATION ──
 function go(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.getElementById(id).scrollTop=0;
   document.querySelectorAll('.nav-item,.mob-nav-link').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
-
   if(id==='create-pg'){
-    if(loggedIn){
-      document.getElementById('create-gate').style.display='none';
-      document.getElementById('chat-wrap').classList.add('visible');
-    } else {
-      document.getElementById('create-gate').style.display='flex';
-      document.getElementById('chat-wrap').classList.remove('visible');
-    }
+    if(currentUser){ showCreateChat(); }
+    else { document.getElementById('create-gate').style.display='flex'; document.getElementById('chat-wrap').classList.remove('visible'); }
   }
+}
+
+function showCreateChat(){
+  document.getElementById('create-gate').style.display='none';
+  document.getElementById('chat-wrap').classList.add('visible');
 }
 
 function toggleMenu(){
@@ -631,10 +668,68 @@ function switchTab(t){
   document.getElementById('form-register').style.display=t==='register'?'flex':'none';
   document.getElementById('modal-title').textContent=t==='login'?'ВОЙТИ':'РЕГИСТРАЦИЯ';
 }
-function fakeLogin(){
-  loggedIn=true;
-  closeModalDirect();
-  go('create-pg');
+
+function showError(id, msg){ var el=document.getElementById(id); el.textContent=msg; el.style.display='block'; }
+function hideErrors(){ ['login-error','register-error'].forEach(id=>{ var el=document.getElementById(id); if(el) el.style.display='none'; }); }
+
+async function doLogin(){
+  hideErrors();
+  var email = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  if(!email||!password){ showError('login-error','Заполни все поля'); return; }
+
+  var btn = document.querySelector('#form-login .form-submit');
+  btn.textContent = 'ВХОДИМ...'; btn.disabled = true;
+
+  var { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.textContent = 'ВОЙТИ'; btn.disabled = false;
+
+  if(error){
+    var msg = error.message.includes('Invalid') ? 'Неверный email или пароль' : error.message;
+    showError('login-error', msg);
+  } else {
+    closeModalDirect();
+    go('create-pg');
+  }
+}
+
+async function doRegister(){
+  hideErrors();
+  var name = document.getElementById('reg-name').value.trim();
+  var email = document.getElementById('reg-email').value.trim();
+  var password = document.getElementById('reg-password').value;
+  if(!name||!email||!password){ showError('register-error','Заполни все поля'); return; }
+  if(password.length < 8){ showError('register-error','Пароль минимум 8 символов'); return; }
+
+  var btn = document.querySelector('#form-register .form-submit');
+  btn.textContent = 'СОЗДАЁМ...'; btn.disabled = true;
+
+  var { error } = await sb.auth.signUp({
+    email, password,
+    options: { data: { name } }
+  });
+  btn.textContent = 'СОЗДАТЬ АККАУНТ'; btn.disabled = false;
+
+  if(error){
+    showError('register-error', error.message);
+  } else {
+    // Supabase отправляет письмо с подтверждением
+    closeModalDirect();
+    showConfirmBanner(email);
+  }
+}
+
+function showConfirmBanner(email){
+  var banner = document.createElement('div');
+  banner.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:14px 28px;font-size:12px;letter-spacing:.08em;z-index:999;text-align:center;max-width:90vw;';
+  banner.innerHTML = '📧 Письмо отправлено на <strong>' + email + '</strong><br/><span style="opacity:.6;font-size:10px">Подтверди email и войди снова</span>';
+  document.body.appendChild(banner);
+  setTimeout(()=>banner.remove(), 6000);
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  go('home');
 }
 
 // ── BUY MODAL ──
@@ -644,7 +739,11 @@ function closeBuyModalDirect(){document.getElementById('buy-modal').classList.re
 function pickSize(el){document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
 function confirmOrder(){
   closeBuyModalDirect();
-  alert('Заказ принят! Мы свяжемся с тобой по email для подтверждения.');
+  var banner=document.createElement('div');
+  banner.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:14px 28px;font-size:12px;letter-spacing:.08em;z-index:999;text-align:center;';
+  banner.textContent='✓ Заказ принят! Проверь email для подтверждения.';
+  document.body.appendChild(banner);
+  setTimeout(()=>banner.remove(),5000);
 }
 
 // ── CHAT ──
@@ -670,13 +769,10 @@ function addMsg(text,who){
   var wrap=document.getElementById('chat-messages');
   var d=document.createElement('div');
   d.className='msg '+who;
-  var av=document.createElement('div');
-  av.className='msg-avatar';
+  var av=document.createElement('div');av.className='msg-avatar';
   if(who==='ai'){av.innerHTML='<div class="avatar-mull">M</div>';}
   else{av.innerHTML='<div class="avatar-user">Я</div>';}
-  var b=document.createElement('div');
-  b.className='msg-bubble';
-  b.textContent=text;
+  var b=document.createElement('div');b.className='msg-bubble';b.textContent=text;
   d.appendChild(av);d.appendChild(b);
   wrap.appendChild(d);
   wrap.scrollTop=wrap.scrollHeight;
@@ -694,7 +790,6 @@ function updateStep(){
 
 function showConcept(){
   document.getElementById('concept-result').classList.add('visible');
-  var wrap=document.getElementById('chat-messages').parentElement;
   document.getElementById('concept-result').scrollIntoView({behavior:'smooth'});
 }
 
